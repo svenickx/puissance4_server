@@ -1,4 +1,6 @@
-﻿using System.Net;
+﻿using p4_server.Config;
+using p4_server.Model;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
 
@@ -7,8 +9,10 @@ namespace server
     class Program
     {
         private static Socket _serverSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        private static List<Socket> _clientSockets = new List<Socket>();
+        private static Dictionary<string, Socket> _clientSockets = new Dictionary<string, Socket>();
+        private static List<Game> games = new List<Game>();
         private static byte[] _buffer = new byte[1024];
+        private static string uid = "";
 
         static void Main(string[] args)
         {
@@ -17,8 +21,7 @@ namespace server
             Console.ReadLine();
         }
 
-        private static void SetupServer()
-        {
+        private static void SetupServer() {
             Console.WriteLine("Seting up server...");
             _serverSocket.Bind(new IPEndPoint(IPAddress.Any, 10000));
             _serverSocket.Listen(5);
@@ -28,7 +31,10 @@ namespace server
         private static void AcceptCallback(IAsyncResult AR) 
         {
             Socket socket = _serverSocket.EndAccept(AR);
-            _clientSockets.Add(socket);
+
+            uid = Guid.NewGuid().ToString();
+            _clientSockets.Add(uid, socket);
+
             socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), socket);
             _serverSocket.BeginAccept(new AsyncCallback(AcceptCallback), null);
         }
@@ -40,38 +46,41 @@ namespace server
             byte[] dataBuf = new byte[received];
             Array.Copy(_buffer, dataBuf, received);
 
-            string text = Encoding.ASCII.GetString(dataBuf);
-            Console.WriteLine("Text received: " + text);
+            string req = Encoding.ASCII.GetString(dataBuf);
+            Console.WriteLine("Text received: " + req);
 
-            string response = string.Empty;
-            response = DateTime.Now.ToLongTimeString();
-            byte[] data = Encoding.ASCII.GetBytes(response);
+            SelectActions(req, socket);
+        }
 
-            if (text.ToLower() == "get time")
-            {
-                socket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
-                socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), socket);
-            }
-            else if (text.ToLower() == "get time for all")
-            {
-                foreach (Socket sock in _clientSockets)
-                {
-                    sock.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), sock);
-                    sock.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), sock);
+        private static void SelectActions(string request, Socket socket) {
+            string[] actions = request.Split(",");
+            string response = "";
+
+            if (actions[0] == "search") {
+                SendTo(socket, "waiting");
+
+                string player_name = actions[1];
+                string[] columns = new string[] { "id", "player" };
+                string[] values = new string[] { uid, player_name };
+
+                Insert.InsertIntoDB("users", columns, values);
+                Game? game = CreateGame.checkPlayersAvailable();
+                if (game != null) {
+                    Console.WriteLine("Match created: " + game.player1.name + " VS " + game.player2.name);
+                    games.Add(game);
+                    SendTo(_clientSockets[game.player1.id], "matchFound," + game.id + "," + game.player1.name + "," + game.player2.name);
+                    SendTo(_clientSockets[game.player2.id], "matchFound," + game.id + "," + game.player1.name + "," + game.player2.name);
                 }
-            }
-            else
-            {
-                response = "Invalid Request";
-                data = Encoding.ASCII.GetBytes(response);
-                socket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
-                socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), socket);
             }
         }
 
+        private static void SendTo(Socket socket, string response) {
+            byte[] data = Encoding.ASCII.GetBytes(response);
 
-        private static void SendCallback(IAsyncResult AR)
-        {
+            socket.BeginSend(data, 0, data.Length, SocketFlags.None, new AsyncCallback(SendCallback), socket);
+            socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), socket);
+        }
+        private static void SendCallback(IAsyncResult AR) {
             Socket socket = (Socket)AR.AsyncState;
             socket.EndSend(AR);
         }

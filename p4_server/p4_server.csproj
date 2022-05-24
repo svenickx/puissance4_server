@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="DotNetty.Transport" Version="0.7.2" />
+    <PackageReference Include="MySqlConnector" Version="2.1.9" />
     <PackageReference Include="SuperSocket" Version="1.6.6.1" />
     <PackageReference Include="SuperSocket.ClientEngine.Core" Version="0.10.0" />
     <PackageReference Include="SuperSocket.Engine" Version="1.6.6.1" />
