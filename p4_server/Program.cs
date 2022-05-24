@@ -12,7 +12,6 @@ namespace server
         private static Dictionary<string, Socket> _clientSockets = new Dictionary<string, Socket>();
         private static List<Game> games = new List<Game>();
         private static byte[] _buffer = new byte[1024];
-        private static string uid = "";
 
         static void Main(string[] args)
         {
@@ -32,8 +31,6 @@ namespace server
         {
             Socket socket = _serverSocket.EndAccept(AR);
 
-            uid = Guid.NewGuid().ToString();
-            _clientSockets.Add(uid, socket);
 
             socket.BeginReceive(_buffer, 0, _buffer.Length, SocketFlags.None, new AsyncCallback(ReceiveCallback), socket);
             _serverSocket.BeginAccept(new AsyncCallback(AcceptCallback), null);
@@ -60,6 +57,9 @@ namespace server
                 SendTo(socket, "waiting");
 
                 string player_name = actions[1];
+                string uid = actions[2];
+
+                _clientSockets.Add(uid, socket);
                 string[] columns = new string[] { "id", "player" };
                 string[] values = new string[] { uid, player_name };
 
@@ -68,8 +68,8 @@ namespace server
                 if (game != null) {
                     Console.WriteLine("Match created: " + game.player1.name + " VS " + game.player2.name);
                     games.Add(game);
-                    SendTo(_clientSockets[game.player1.id], "matchFound," + game.id + "," + game.player1.name + "," + game.player2.name);
-                    SendTo(_clientSockets[game.player2.id], "matchFound," + game.id + "," + game.player1.name + "," + game.player2.name);
+                    SendTo(_clientSockets[game.player1.id], "matchFound:" + game.id + "," + game.player1.name + ":" + game.player1.id + "," + game.player2.name + ":" + game.player2.id);
+                    SendTo(_clientSockets[game.player2.id], "matchFound:" + game.id + "," + game.player1.name + ":" + game.player1.id + "," + game.player2.name + ":" + game.player2.id);
                 }
             }
         }
