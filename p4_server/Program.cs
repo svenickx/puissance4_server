@@ -72,6 +72,36 @@ namespace server
                     SendTo(_clientSockets[game.player2.id], "matchFound:" + game.id + "," + game.player1.name + ":" + game.player1.id + "," + game.player2.name + ":" + game.player2.id);
                 }
             }
+            else if (actions[0] == "move")
+            {
+                string sender_id = actions[2];
+                string col = actions[3];
+
+                Game? game = games.Find(G => G.id == actions[1]);
+                if (game != null)
+                {
+                    string receiver_id = (game.player1.id == sender_id) ? game.player2.id : game.player1.id;
+                    SendTo(_clientSockets[receiver_id], "move," + col);
+                }
+            }
+            else if (actions[0] == "endGame")
+            {
+                string game_id = actions[1];
+                string sender_id = actions[2];
+                string state = actions[3];
+
+                Game? game = games.Find(G => G.id == game_id);
+                if (game != null)
+                {
+                    string receiver_id = (game.player1.id == sender_id) ? game.player2.id : game.player1.id;
+                    SendTo(_clientSockets[receiver_id], "endGame," + state);
+                    Delete.DeleteFromDB("game", game_id);
+                }
+            }
+            else if (actions[0] == "quit")
+            {
+                Delete.DeleteFromDB("users", actions[1]);
+            }
         }
 
         private static void SendTo(Socket socket, string response) {
