@@ -96,11 +96,38 @@ namespace server
                     string receiver_id = (game.player1.id == sender_id) ? game.player2.id : game.player1.id;
                     SendTo(_clientSockets[receiver_id], "endGame," + state);
                     Delete.DeleteFromDB("game", game_id);
+                    games.Remove(game);
                 }
             }
             else if (actions[0] == "quit")
             {
-                Delete.DeleteFromDB("users", actions[1]);
+                string game_id = actions[1];
+                string player_id = actions[2];
+
+                Game? game = games.Find(G => G.id == game_id);
+                if (game != null)
+                {
+                    string receiver_id = (game.player1.id == player_id) ? game.player2.id : game.player1.id;
+                    SendTo(_clientSockets[receiver_id], "endGame," + "victory");
+                    Delete.DeleteFromDB("game", game_id);
+                    games.Remove(game);
+                }
+                Delete.DeleteFromDB("users", player_id);
+                _clientSockets.Remove(player_id);
+            }
+            else if (actions[0] == "newGame")
+            {
+                string playerID = actions[1];
+
+                Update.UpdateFromDB("users", "isInGame", "0", new string[] {playerID});
+                Game? game = CreateGame.checkPlayersAvailable();
+                if (game != null)
+                {
+                    Console.WriteLine("Match created: " + game.player1.name + " VS " + game.player2.name);
+                    games.Add(game);
+                    SendTo(_clientSockets[game.player1.id], "matchFound:" + game.id + "," + game.player1.name + ":" + game.player1.id + "," + game.player2.name + ":" + game.player2.id);
+                    SendTo(_clientSockets[game.player2.id], "matchFound:" + game.id + "," + game.player1.name + ":" + game.player1.id + "," + game.player2.name + ":" + game.player2.id);
+                }
             }
         }
 
