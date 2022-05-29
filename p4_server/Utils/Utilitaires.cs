@@ -8,6 +8,10 @@ namespace p4_server.Utils
 {
     internal class Utilitaires
     {
+
+        /// <summary>
+        /// Performs a fake loading
+        /// </summary>
         public static void FakeLoading()
         {
             for (int i = 0; i < 3; i++)
