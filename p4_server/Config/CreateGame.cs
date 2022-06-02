@@ -14,7 +14,7 @@ namespace p4_server.Config {
             MySqlCommand command = connection.CreateCommand();
             Game? game = null;
 
-            command.CommandText = "SELECT users.id, users.player FROM users WHERE users.isInGame = 0 LIMIT 2";
+            command.CommandText = "SELECT users.id, users.player FROM users WHERE users.isInGame = 0 ORDER BY users.joinedAt LIMIT 2";
 
             try {
                 connection.Open();

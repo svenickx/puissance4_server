@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace p4_server.Model {
-    internal class Game : EventArgs {
+    internal class Game {
         public string id { get; set; }
         public Player player1 { get; set; }
         public Player player2 { get; set; }

@@ -9,6 +9,7 @@ namespace p4_server.SrvSocket
     public class SrvSocket
     {
         private static readonly byte[] _buffer = new byte[1024];
+        private static readonly int port = 10000;
 
         /// <summary>
         /// Make the server listen to the port
@@ -17,7 +18,7 @@ namespace p4_server.SrvSocket
         {
             Console.Write("Setting up server");
             Utilitaires.FakeLoading();
-            Program._serverSocket.Bind(new IPEndPoint(IPAddress.Any, 10000));
+            Program._serverSocket.Bind(new IPEndPoint(IPAddress.Any, port));
             Program._serverSocket.Listen(5);
             Program._serverSocket.BeginAccept(new AsyncCallback(SrvSocket.AcceptCallback), null);
             Console.WriteLine("\nServer ready.");

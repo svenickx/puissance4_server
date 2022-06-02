@@ -110,7 +110,7 @@ namespace server
             if (game != null)
             {
                 string receiver_id = (game.player1.id == player_id) ? game.player2.id : game.player1.id;
-                SrvSocket.SendTo(_clientSockets[receiver_id], "endGame," + "victory");
+                SrvSocket.SendTo(_clientSockets[receiver_id], "endGame," + "disconnected");
                 Delete.DeleteFromDB("game", game_id);
                 games.Remove(game);
             }

@@ -21,7 +21,7 @@ namespace p4_server.Config {
         }
 
         public static string MakeUpdateQuery(string table, string column, string value, string id) {
-            return "UPDATE " + table + " SET " + column + " = " + value + " WHERE id = \'" + id + "\'";
+            return "UPDATE " + table + " SET " + column + " = " + value + ", joinedAt = CURRENT_TIMESTAMP WHERE id = \'" + id + "\'";
         }
     }
 }
