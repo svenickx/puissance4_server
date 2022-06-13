@@ -3,6 +3,7 @@ using System.Text;
 using System.Net.Sockets;
 using System.Net;
 using p4_server.Utils;
+using p4_server.Config;
 
 namespace p4_server.SrvSocket
 {
@@ -18,6 +19,8 @@ namespace p4_server.SrvSocket
         {
             Console.Write("Setting up server");
             Utilitaires.FakeLoading();
+            MySqlUtils.CreateDB();
+            Delete.ClearDB();
             Program._serverSocket.Bind(new IPEndPoint(IPAddress.Any, port));
             Program._serverSocket.Listen(5);
             Program._serverSocket.BeginAccept(new AsyncCallback(SrvSocket.AcceptCallback), null);
