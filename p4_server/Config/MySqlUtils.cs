@@ -14,7 +14,7 @@ namespace p4_server.Config {
         private static readonly string mdp = "";
 
         public static string GetDBstring() {
-            return "Server=" + ip +";Port=" + port + ";Database=" + dbName + ";Uid=" + user + ";Pwd=" + mdp + ";";
+            return $"Server={ip};Port={port};Database={dbName};Uid={user};Pwd={mdp};";
         }
         public static void CreateDB() {
             string script = File.ReadAllText(path: "../../../puissance4.sql");
